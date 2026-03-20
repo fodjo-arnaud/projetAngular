@@ -7,10 +7,15 @@ router.get("/", async (req, res) => {
   let limit = parseInt(req.query.limit) || 20;
   let skip = (page - 1) * limit;
 
-  // Construction du filtre de recherche
+  // Requête de base
   let query = {};
 
-  // 1. Recherche par nom ou auteur (insensible à la casse)
+  // Si un auteur est spécifié (mode élève), on filtre par auteur
+  if (req.query.auteur) {
+    query.auteur = req.query.auteur;
+  }
+
+  // Recherche textuelle
   if (req.query.search) {
     query.$or = [
       { nom: { $regex: req.query.search, $options: 'i' } },
@@ -18,21 +23,35 @@ router.get("/", async (req, res) => {
     ];
   }
 
-  // 2. Filtrage par statut (rendu true/false)
+  // Filtrage par statut pour la LISTE uniquement
+  let listQuery = { ...query };
   if (req.query.rendu !== undefined && req.query.rendu !== '') {
-    query.rendu = req.query.rendu === 'true';
+    listQuery.rendu = req.query.rendu === 'true';
   }
 
   try {
-    const data = await Assignment.find(query).skip(skip).limit(limit);
-    const total = await Assignment.countDocuments(query);
+    const data = await Assignment.find(listQuery).skip(skip).limit(limit);
+    const totalFiltered = await Assignment.countDocuments(listQuery);
+
+    // CALCUL DES STATS SUR LA TOTALITÉ DE LA BASE (Sans les filtres de recherche/statut)
+    // On ne garde que le filtre d'auteur si on est en mode "user"
+    const statsQuery = req.query.auteur ? { auteur: req.query.auteur } : {};
+
+    const totalGlobal = await Assignment.countDocuments(statsQuery);
+    const doneGlobal = await Assignment.countDocuments({ ...statsQuery, rendu: true });
+    const pendingGlobal = totalGlobal - doneGlobal;
 
     res.json({
       docs: data,
-      totalDocs: total,
+      totalDocs: totalFiltered,
       limit: limit,
       page: page,
-      totalPages: Math.ceil(total / limit)
+      totalPages: Math.ceil(totalFiltered / limit),
+      stats: {
+        total: totalGlobal,
+        done: doneGlobal,
+        pending: pendingGlobal
+      }
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

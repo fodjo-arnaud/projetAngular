@@ -9,7 +9,12 @@ const AssignmentSchema = new mongoose.Schema({
   imageMatiere: String,
   prof: String,
   note: Number,
-  remarques: String
+  remarques: String,
+  priorite: {
+    type: String,
+    enum: ['basse', 'moyenne', 'haute'],
+    default: 'moyenne'
+  }
 });
 
 module.exports = mongoose.model("Assignment", AssignmentSchema);
