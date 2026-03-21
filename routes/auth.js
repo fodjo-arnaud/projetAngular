@@ -30,4 +30,15 @@ router.post("/login", async (req,res)=>{
   res.json({token, role:user.role, username: user.username});
 });
 
+// Route pour récupérer la liste de tous les utilisateurs (Étudiants)
+router.get("/users", async (req, res) => {
+  try {
+    // On récupère uniquement le username et le role
+    const users = await User.find({}, "username role");
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur lors de la récupération des utilisateurs" });
+  }
+});
+
 module.exports = router;

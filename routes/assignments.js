@@ -58,6 +58,18 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Route pour récupérer la liste unique de tous les auteurs
+router.get("/authors", async (req, res) => {
+  try {
+    const authors = await Assignment.distinct("auteur");
+    // On filtre les valeurs nulles ou vides
+    const cleanAuthors = authors.filter(a => a && a.trim() !== "");
+    res.json(cleanAuthors);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.post("/", async (req, res) => {
   const a = new Assignment(req.body);
   await a.save();
