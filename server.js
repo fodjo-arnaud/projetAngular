@@ -21,4 +21,5 @@ app.use("/api/subjects", subjectRoutes);
 
 const PORT = process.env.PORT || 3000;
 
+app.get("/api/health", (req, res) => res.json({ status: "ok", message: "Le nouveau code est en ligne !" }));
 app.listen(PORT, () => console.log("Server running on port " + PORT));
