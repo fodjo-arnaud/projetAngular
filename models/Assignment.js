@@ -14,7 +14,8 @@ const AssignmentSchema = new mongoose.Schema({
     type: String,
     enum: ['basse', 'moyenne', 'haute'],
     default: 'moyenne'
-  }
+  },
+  noteAttribuee: { type: Boolean, default: false }
 });
 
 module.exports = mongoose.model("Assignment", AssignmentSchema);

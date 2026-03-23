@@ -6,16 +6,24 @@ const router = express.Router();
 
 router.post("/register", async (req,res)=>{
   try {
-    const hash = await bcrypt.hash(req.body.password, 10);
+    const { username, password, role } = req.body;
+
+    // Vérifier si l'utilisateur existe déjà
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ message: "Cet utilisateur existe déjà" });
+    }
+
+    const hash = await bcrypt.hash(password, 10);
     const user = new User({
-      username: req.body.username,
+      username,
       password: hash,
-      role: req.body.role || 'user'
+      role: role || 'user'
     });
     await user.save();
-    res.json({ message: "User created successfully" });
+    res.json({ message: "Utilisateur créé avec succès" });
   } catch (error) {
-    res.status(500).json({ message: "Error creating user" });
+    res.status(500).json({ message: "Erreur lors de la création de l'utilisateur" });
   }
 });
 
